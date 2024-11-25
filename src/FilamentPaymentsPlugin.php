@@ -5,6 +5,7 @@ namespace TomatoPHP\FilamentPayments;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Nwidart\Modules\Module;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway;
 use TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource;
 
@@ -25,8 +26,8 @@ class FilamentPaymentsPlugin implements Plugin
             $this->isActive = true;
         }
 
-        $payment_resource = config('filament-payments.payment_resource');
-        $payment_gateway_page = config('filament-payments.payment_gateway_page');
+        $payment_resource = FilamentPayments::loadPaymentFilamentResourcesClass();
+        $payment_gateway_page = FilamentPayments::loadPaymentGatewayFilamentPageClass();
 
         $resources = [];
         if (config('filament-payments.enable_resources')) {

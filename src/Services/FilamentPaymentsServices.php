@@ -160,4 +160,22 @@ class FilamentPaymentsServices
         }
         return  $model;
     }
+
+    public function loadPaymentGatewayFilamentPageClass()
+    {
+        $model = config('filament-payments.payment_gateway_page') ??  \TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Payment gateway page class not found');
+        }
+        return  $model;
+    }
+
+    public function loadPaymentFilamentResourcesClass()
+    {
+        $model = config('filament-payments.payment_resource') ??  \TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Payment resource class not found');
+        }
+        return  $model;
+    }
 }
