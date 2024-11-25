@@ -6,6 +6,7 @@ use Filament\Resources\Pages\ManageRecords;
 use TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource;
 use Filament\Actions;
 use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
+use TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway;
 
 class ListPayments extends ManageRecords
 {
@@ -15,7 +16,7 @@ class ListPayments extends ManageRecords
     {
         return [
             Actions\Action::make('payment')
-                ->url(FilamentPayments::loadPaymentGatewayFilamentPageClass()::getUrl())
+                ->url(PaymentGateway::getUrl())
                 ->label(trans('filament-payments::messages.payment_gateways.title'))
                 ->tooltip(trans('filament-payments::messages.payment_gateways.title'))
                 ->icon('heroicon-o-cog')

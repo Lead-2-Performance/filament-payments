@@ -22,6 +22,7 @@ return [
     "account_model" => \App\Models\Account::class,
 
     "enable_resources" => true,
-    "payment_resource" => \TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource::class,
-    "payment_gateway_page" => \TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway::class,
+    //turned off
+    // "payment_resource" => \TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource::class,
+    // "payment_gateway_page" => \TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway::class,
 ];

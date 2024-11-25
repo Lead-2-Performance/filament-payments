@@ -13,8 +13,6 @@ use TomatoPHP\FilamentPayments\Services\Contracts\PaymentRequest;
  * @method static string loadPaymentLogModelClass()
  * @method static string loadTeamModelClass()
  * @method static string loadAccountModelClass()
- * @method static string loadPaymentGatewayFilamentPageClass()
- * @method static string loadPaymentFilamentResourcesClass()
  */
 class FilamentPayments extends Facade
 {
