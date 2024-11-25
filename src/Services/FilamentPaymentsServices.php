@@ -2,16 +2,14 @@
 
 namespace TomatoPHP\FilamentPayments\Services;
 
-use App\Models\Team;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use TomatoPHP\FilamentPayments\Models\Payment;
-use TomatoPHP\FilamentPayments\Models\PaymentGateway;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentRequest;
 
 class FilamentPaymentsServices
 {
-    public function pay(PaymentRequest $data, bool $json=false)
+
+    public function pay(PaymentRequest $data, bool $json = false)
     {
         // Define the validation rules
         $rules = [
@@ -55,12 +53,11 @@ class FilamentPaymentsServices
 
         // Check if validation fails
         if ($validator->fails()) {
-            if($json){
+            if ($json) {
                 return response()->json([
                     'error' => $validator->errors()
                 ], 400);
-            }
-            else {
+            } else {
                 return [
                     'error' => $validator->errors()
                 ];
@@ -71,7 +68,7 @@ class FilamentPaymentsServices
 
 
         // Create the Payment
-        $payment = Payment::create([
+        $payment = static::loadPaymentModelClass()::create([
             'model_id' => $validated['model_id'],
             'model_type' => $validated['model'],
             'method_currency' => $validated['currency'],
@@ -87,7 +84,7 @@ class FilamentPaymentsServices
             'billing_info' => $validated['billing_info'] ?? [],
         ]);
 
-        if($json){
+        if ($json) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment created successfully',
@@ -96,8 +93,7 @@ class FilamentPaymentsServices
                     'url' => route('payment.index', $payment->trx),
                 ]
             ], 201);
-        }
-        else {
+        } else {
             return route('payment.index', $payment->trx);
         }
     }
@@ -105,18 +101,63 @@ class FilamentPaymentsServices
     public function loadDrivers(): void
     {
         $drivers = config('filament-payments.drivers');
-        foreach ($drivers as $driver){
+        foreach ($drivers as $driver) {
             $driver = app($driver);
             $paymentGate = $driver->integration();
-            if(isset($paymentGate['alias'])){
-                $payment = PaymentGateway::query()
+            if (isset($paymentGate['alias'])) {
+                $payment = static::loadPaymentGatewayModelClass()::query()
                     ->where('alias', $paymentGate['alias'])
                     ->first();
 
-                if(!$payment){
-                    PaymentGateway::query()->create($paymentGate);
+                if (!$payment) {
+                    static::loadPaymentGatewayModelClass()::query()->create($paymentGate);
                 }
             }
         }
+    }
+
+    public function loadPaymentModelClass()
+    {
+        $model = config('filament-payments.payment_model') ?? \TomatoPHP\FilamentPayments\Models\Payment::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Payment model class not found');
+        }
+        return  $model;
+    }
+
+    public function loadPaymentGatewayModelClass()
+    {
+        $model = config('filament-payments.gateway_model') ?? \TomatoPHP\FilamentPayments\Models\PaymentGateway::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Gateway model class not found');
+        }
+        return  $model;
+    }
+
+    public function loadPaymentLogModelClass()
+    {
+        $model = config('filament-payments.logs_model') ?? \TomatoPHP\FilamentPayments\Models\PaymentLog::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Payment log model class not found');
+        }
+        return  $model;
+    }
+
+    public function loadTeamModelClass()
+    {
+        $model = config('filament-payments.team_model') ?? \App\Models\Team::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Team model class not found');
+        }
+        return  $model;
+    }
+
+    public function loadAccountModelClass()
+    {
+        $model = config('filament-payments.account_model') ?? \App\Models\Account::class;
+        if (!class_exists($model)) {
+            throw new \Exception('Account model class not found');
+        }
+        return  $model;
     }
 }

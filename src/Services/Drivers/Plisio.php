@@ -2,19 +2,20 @@
 
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 class Plisio extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
         $gatewayData = $payment->gateway->gateway_parameters;
 
-        if(!$gatewayData['secret_key']){
+        if (!$gatewayData['secret_key']) {
             $send['error'] = true;
             $send['message'] = 'Plisio secret key is not set';
             return json_encode($send);
@@ -59,12 +60,12 @@ class Plisio extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $gatewayData = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'Plisio')->orderBy('id', 'desc')->firstOrFail();
+        $gatewayData = FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'Plisio')->orderBy('id', 'desc')->firstOrFail();
         $gatewayParameter = $gatewayData->gateway_parameters;
 
         $sessionId = $request->get('session');
 
-        $payment = Payment::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
 
         $response = Http::get("https://api.plisio.net/api/v1/operations/{$payment->method_code}", [
             'api_key' => $gatewayParameter['secret_key'],

@@ -5,7 +5,7 @@ namespace TomatoPHP\FilamentPayments\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use App\Models\Team;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 
 /**
  * @property int model_id
@@ -111,7 +111,7 @@ class Payment extends Model
      */
     public function gateway(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(PaymentGateway::class, 'method_id', 'id');
+        return $this->belongsTo(FilamentPayments::loadPaymentGatewayModelClass(), 'method_id', 'id');
     }
 
     /**
@@ -119,6 +119,6 @@ class Payment extends Model
      */
     public function team(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Team::class, 'model_id');
+        return $this->belongsTo(FilamentPayments::loadTeamModelClass(), 'model_id');
     }
 }

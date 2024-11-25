@@ -3,19 +3,20 @@
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
 use Exception;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
 use PayPalCheckoutSdk\Core\ProductionEnvironment;
 use PayPalCheckoutSdk\Core\SandboxEnvironment;
 use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 class Paypal extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
         $gatewayParameters = $payment->gateway->gateway_parameters;
 
@@ -58,12 +59,12 @@ class Paypal extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $gatewayData = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'Paypal')->orderBy('id', 'desc')->firstOrFail();
+        $gatewayData =  FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'Paypal')->orderBy('id', 'desc')->firstOrFail();
         $gatewayParameter = $gatewayData->gateway_parameters;
 
         $sessionId = $request->get('session');
 
-        $payment = Payment::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
 
         if ($gatewayParameter['mode'] == "live")
             $environment = new ProductionEnvironment($gatewayParameter['client_id'], $gatewayParameter['secret']);

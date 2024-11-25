@@ -6,7 +6,6 @@ use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Nwidart\Modules\Module;
 use TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway;
-use TomatoPHP\FilamentPayments\Filament\Resources\PaymentGatewayResource;
 use TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource;
 
 class FilamentPaymentsPlugin implements Plugin
@@ -20,14 +19,13 @@ class FilamentPaymentsPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        if(class_exists(Module::class) && \Nwidart\Modules\Facades\Module::find('FilamentPayments')?->isEnabled()){
+        if (class_exists(Module::class) && \Nwidart\Modules\Facades\Module::find('FilamentPayments')?->isEnabled()) {
             $this->isActive = true;
-        }
-        else {
+        } else {
             $this->isActive = true;
         }
 
-        if($this->isActive) {
+        if ($this->isActive) {
             $panel
                 ->pages([
                     PaymentGateway::class

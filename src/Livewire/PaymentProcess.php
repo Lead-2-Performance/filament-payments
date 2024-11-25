@@ -12,11 +12,9 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\InteractsWithFormActions;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
-use TomatoPHP\FilamentPayments\Models\Payment;
-use TomatoPHP\FilamentPayments\Models\PaymentGateway;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 
 class PaymentProcess extends Component implements HasForms, HasActions
 {
@@ -35,10 +33,12 @@ class PaymentProcess extends Component implements HasForms, HasActions
 
     public function mount($trx)
     {
-        $this->payment = Payment::where('trx', $trx)->where('status', 0)->firstOrFail();
+        $model = FilamentPayments::loadPaymentModelClass();
+
+        $this->payment = $model::where('trx', $trx)->where('status', 0)->firstOrFail();
         $this->userIp = request()->ip();
 
-        $gateways = PaymentGateway::where('status', 1)->orderBy('sort_order', 'asc')->get();
+        $gateways = FilamentPayments::loadPaymentGatewayModelClass()::where('status', 1)->orderBy('sort_order', 'asc')->get();
 
         $this->gateways = $gateways->filter(function ($gateway) {
             $supportedCurrencies = collect($gateway->supported_currencies);
@@ -61,7 +61,7 @@ class PaymentProcess extends Component implements HasForms, HasActions
                         ->default($this->gateways->first()?->id)
                         ->live()
                         ->hiddenLabel()
-                        ->afterStateUpdated(function (){
+                        ->afterStateUpdated(function () {
                             $this->calculateFee();
                         })
                         ->descriptions($this->gateways->pluck('description', 'id')->toArray())
@@ -77,7 +77,7 @@ class PaymentProcess extends Component implements HasForms, HasActions
         return Action::make('paymentAction')
             ->icon('heroicon-o-credit-card')
             ->label(trans('filament-payments::messages.view.choose_payment_method'))
-            ->action(function(){
+            ->action(function () {
                 $this->process();
             });
     }
@@ -90,7 +90,7 @@ class PaymentProcess extends Component implements HasForms, HasActions
 
         $this->selectedGateway = $this->data['gateway'];
 
-        $selectedGateway = PaymentGateway::where('status', 1)->find($this->selectedGateway);
+        $selectedGateway = FilamentPayments::loadPaymentGatewayModelClass()::where('status', 1)->find($this->selectedGateway);
 
         if ($selectedGateway) {
             $supportedCurrencies = $selectedGateway->supported_currencies;
@@ -114,7 +114,7 @@ class PaymentProcess extends Component implements HasForms, HasActions
             'selectedGateway' => 'required',
         ]);
 
-        $gateway = PaymentGateway::where('id', $this->selectedGateway)->where('status', 1)->firstOrFail();
+        $gateway = FilamentPayments::loadPaymentGatewayModelClass()::where('id', $this->selectedGateway)->where('status', 1)->firstOrFail();
 
         $supportedCurrencies = $gateway->supported_currencies;
         $currencyCode = $this->payment->method_currency;
@@ -143,13 +143,13 @@ class PaymentProcess extends Component implements HasForms, HasActions
         $dirName = $gateway->alias;
         $drivers = config('filament-payments.drivers');
         $new = false;
-        foreach ($drivers as $driver){
-            if(str($driver)->contains($dirName)){
+        foreach ($drivers as $driver) {
+            if (str($driver)->contains($dirName)) {
                 $new = $driver;
                 break;
             }
         }
-        if(!$new){
+        if (!$new) {
             $new = "TomatoPHP\\FilamentPayments\\Services\\Drivers\\{$dirName}";
         }
 
@@ -178,8 +178,7 @@ class PaymentProcess extends Component implements HasForms, HasActions
             } else {
                 $this->viewToRender = $this->response->view;
             }
-        }catch (\Exception $e) {
-            dd($e);
+        } catch (\Exception $e) {
             Log::error($e->getMessage());
 
             Notification::make()

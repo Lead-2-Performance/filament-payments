@@ -3,20 +3,29 @@
 namespace TomatoPHP\FilamentPayments\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Account;
-use TomatoPHP\FilamentPayments\Models\Payment;
-use TomatoPHP\FilamentPayments\Models\PaymentGateway;
-use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 
 class PaymentController extends Controller
 {
+    private function getPaymentModel()
+    {
+        $model = FilamentPayments::loadPaymentModelClass();
+        return $model;
+    }
+
+    private function getTeamModel()
+    {
+        $model = FilamentPayments::loadTeamModelClass();
+        return $model;
+    }
+
     public function cancel($trx)
     {
-        $payment = Payment::where('trx', $trx)->where('status', 0)->firstOrFail();
+        $payment = $this->getPaymentModel()::where('trx', $trx)->where('status', 0)->firstOrFail();
 
         // Update Status
         $payment->status = 2;
@@ -75,9 +84,9 @@ class PaymentController extends Controller
 
         $validated = $validator->validated();
 
-        $team = Team::where('public_key', $validated['public_key'])->where('status', 1)->first();
+        $team = $this->getTeamModel()::where('public_key', $validated['public_key'])->where('status', 1)->first();
 
-        $team = Team::where('public_key', $validated['public_key'])->first();
+        $team = $this->getTeamModel()::where('public_key', $validated['public_key'])->first();
 
         if (!$team) {
             return response()->json([
@@ -100,9 +109,9 @@ class PaymentController extends Controller
         }
 
         // Create the Payment
-        $payment = Payment::create([
+        $payment = $this->getPaymentModel()::create([
             'model_id' => $team->id,
-            'model_type' => Team::class,
+            'model_type' => $this->getTeamModel(),
             'method_currency' => $validated['currency'],
             'amount' => $validated['amount'],
             'detail' => $validated['details'],
@@ -140,7 +149,7 @@ class PaymentController extends Controller
 
         $validated = $validator->validated();
 
-        $team = Team::where('public_key', $validated['public_key'])->first();
+        $team = $this->getTeamModel()::where('public_key', $validated['public_key'])->first();
 
         if (!$team) {
             return response()->json([
@@ -149,7 +158,7 @@ class PaymentController extends Controller
             ], 404);
         }
 
-        $payment = Payment::where('model_id', $team->id)->where('trx', $validated['id'])->first();
+        $payment = $this->getPaymentModel()::where('model_id', $team->id)->where('trx', $validated['id'])->first();
 
         if (!$payment) {
             return response()->json([
@@ -192,13 +201,13 @@ class PaymentController extends Controller
 
         $drivers = config('filament-payments.drivers');
         $gaywayClass = false;
-        foreach ($drivers as $driver){
-            if(str($driver)->contains($gatway)){
+        foreach ($drivers as $driver) {
+            if (str($driver)->contains($gatway)) {
                 $gaywayClass = app($driver);
                 break;
             }
         }
-        if(!$gaywayClass){
+        if (!$gaywayClass) {
             $gaywayClass = app(config('filament-payments.path') . "\\" . $gatway);
         }
 

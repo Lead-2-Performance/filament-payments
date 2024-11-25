@@ -13,5 +13,11 @@ return [
         \TomatoPHP\FilamentPayments\Services\Drivers\StripeV3::class,
         \TomatoPHP\FilamentPayments\Services\Drivers\Tap::class,
     ],
-    "path" => "TomatoPHP\\FilamentPayments\\Services\\Drivers"
+    "path" => "TomatoPHP\\FilamentPayments\\Services\\Drivers",
+
+    "payment_model" => \TomatoPHP\FilamentPayments\Models\Payment::class,
+    "gateway_model" => \TomatoPHP\FilamentPayments\Models\PaymentGateway::class,
+    "logs_model" => \TomatoPHP\FilamentPayments\Models\PaymentLog::class,
+    "team_model" => \App\Models\Team::class,
+    "account_model" => \App\Models\Account::class,
 ];

@@ -50,7 +50,7 @@
                     />
 
 
-                    <div class="grid text-sm leading-6 w-full">
+                    <div class="grid w-full text-sm leading-6">
                         <div class="flex justify-between">
                             <div class="w-full">
                                 <span class="font-medium text-gray-950 dark:text-white">
@@ -64,7 +64,7 @@
                                 @endif
                             </div>
                             <div>
-                                @php $gateway = \TomatoPHP\FilamentPayments\Models\PaymentGateway::query()->find($value); @endphp
+                                @php $gateway = \TomatoPHP\FilamentPayments\Facades\FilamentPayments::loadPaymentGatewayModelClass()::query()->find($value); @endphp
                                 @if ($gateway->getFirstMediaUrl('image'))
                                     <img src="{{ $gateway->getFirstMediaUrl('image') }}" alt="{{ $gateway->name }}"
                                          class="w-32" />

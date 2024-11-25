@@ -4,15 +4,17 @@ namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
 use Illuminate\Http\Request;
 use Cryptomus\Api\Client;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use Illuminate\Database\Eloquent\Model;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 
 class Cryptomus extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
+        $payment = FilamentPayments::loadPaymentModelClass()::query()->where('id', $payment->id)->firstOrFail();
         $gatewayData = $payment->gateway->gateway_parameters;
 
         $cryptomusGateway = Client::payment($gatewayData['payment_key'], $gatewayData['merchant_uuid']);
@@ -37,8 +39,8 @@ class Cryptomus extends Driver
             $send['message'] = $e->getMessage();
             return json_encode($send);
         }
-        
-        if ($response && $response['status'] == 'check' ) {
+
+        if ($response && $response['status'] == 'check') {
             $send['redirect'] = $response['url'];
             $send['session'] = $response['uuid'];
             return json_encode($send);
@@ -51,12 +53,12 @@ class Cryptomus extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $gatewayData = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'Cryptomus')->orderBy('id', 'desc')->firstOrFail();
+        $gatewayData = FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'Cryptomus')->orderBy('id', 'desc')->firstOrFail();
         $gatewayParameter = $gatewayData->gateway_parameters;
 
         $sessionId = $request->get('session');
 
-        $payment = Payment::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('trx',  $sessionId)->where('status', 0)->firstOrFail();
 
         $cryptomusGateway = Client::payment($gatewayParameter['payment_key'], $gatewayParameter['merchant_uuid']);
 

@@ -2,14 +2,15 @@
 
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 class StripeV3 extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
         $stripeData = $payment->gateway->gateway_parameters;
         $alias = $payment->gateway->alias;
@@ -33,7 +34,6 @@ class StripeV3 extends Driver
                 'cancel_url' => route('payment.cancel', $payment->trx),
                 'success_url' => route('payments.callback', ['gateway' => $alias]) . "?session={CHECKOUT_SESSION_ID}",
             ]);
-
         } catch (\Exception $e) {
             $send['error'] = true;
             $send['message'] = $e->getMessage();
@@ -50,7 +50,7 @@ class StripeV3 extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $StripeAcc = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'StripeV3')->orderBy('id', 'desc')->firstOrFail();
+        $StripeAcc = FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'StripeV3')->orderBy('id', 'desc')->firstOrFail();
         $gateway_parameter = $StripeAcc->gateway_parameters;
 
         \Stripe\Stripe::setApiKey($gateway_parameter['secret_key']);
@@ -58,7 +58,7 @@ class StripeV3 extends Driver
 
         $session = \Stripe\Checkout\Session::retrieve($stripeSession);
 
-        $payment = Payment::where('method_code',  $session->id)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('method_code',  $session->id)->where('status', 0)->firstOrFail();
 
         if ($session->status === 'complete') {
 
@@ -93,5 +93,4 @@ class StripeV3 extends Driver
             ])
             ->toArray();
     }
-
 }

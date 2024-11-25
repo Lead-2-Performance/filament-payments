@@ -2,15 +2,16 @@
 
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 class Paymob extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
         $gatewayData = $payment->gateway->gateway_parameters;
 
@@ -65,10 +66,10 @@ class Paymob extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $gatewayData = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'Paymob')->orderBy('id', 'desc')->firstOrFail();
+        $gatewayData = FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'Paymob')->orderBy('id', 'desc')->firstOrFail();
         $gatewayParameter = $gatewayData->gateway_parameters;
 
-        $payment = Payment::where('method_code',  $request['order'])->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('method_code',  $request['order'])->where('status', 0)->firstOrFail();
 
         $string = $request['amount_cents'] . $request['created_at'] . $request['currency'] . $request['error_occured'] . $request['has_parent_transaction'] . $request['id'] . $request['integration_id'] . $request['is_3d_secure'] . $request['is_auth'] . $request['is_capture'] . $request['is_refunded'] . $request['is_standalone_payment'] . $request['is_voided'] . $request['order'] . $request['owner'] . $request['pending'] . $request['source_data_pan'] . $request['source_data_sub_type'] . $request['source_data_type'] . $request['success'];
 

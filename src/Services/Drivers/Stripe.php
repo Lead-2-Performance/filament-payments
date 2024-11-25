@@ -2,14 +2,15 @@
 
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentCurrency;
 use TomatoPHP\FilamentPayments\Services\Contracts\PaymentGateway;
 
 class Stripe extends Driver
 {
-    public static function process(Payment $payment): false|string
+    public static function process(Model $payment): false|string
     {
         $stripeData = $payment->gateway->gateway_parameters;
         \Stripe\Stripe::setApiKey($stripeData['secret_key']);
@@ -41,14 +42,14 @@ class Stripe extends Driver
 
     public static function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
     {
-        $StripeAcc = \TomatoPHP\FilamentPayments\Models\PaymentGateway::where('alias', 'Stripe')->orderBy('id', 'desc')->firstOrFail();
+        $StripeAcc = FilamentPayments::loadPaymentGatewayModelClass()::where('alias', 'Stripe')->orderBy('id', 'desc')->firstOrFail();
         $gateway_parameter = $StripeAcc->gateway_parameters;
 
         \Stripe\Stripe::setApiKey($gateway_parameter['secret_key']);
         $stripeSession = $request->get('payment_intent');
         $session = \Stripe\PaymentIntent::retrieve($stripeSession);
 
-        $payment = Payment::where('method_code',  $session->id)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('method_code',  $session->id)->where('status', 0)->firstOrFail();
 
         if ($session->status === 'succeeded') {
 

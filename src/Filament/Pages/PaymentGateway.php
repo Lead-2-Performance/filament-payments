@@ -6,22 +6,14 @@ namespace TomatoPHP\FilamentPayments\Filament\Pages;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
-use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Actions\Action;
 use Filament\Pages\Page;
-use Filament\Pages\SettingsPage;
 use Filament\Tables\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Model;
-use TomatoPHP\FilamentIcons\Components\IconPicker;
 use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 use TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource;
-use TomatoPHP\FilamentPayments\Models\PaymentGateway as PaymentGatewayModel;
 use TomatoPHP\FilamentTranslationComponent\Components\Translation;
 
 class PaymentGateway extends Page implements Tables\Contracts\HasTable
@@ -56,7 +48,7 @@ class PaymentGateway extends Page implements Tables\Contracts\HasTable
     {
         return [
             Action::make('back')
-                ->action(fn()=> redirect()->to(PaymentResource::getUrl('index')))
+                ->action(fn() => redirect()->to(PaymentResource::getUrl('index')))
                 ->color('danger')
                 ->label(trans('filament-payments::messages.payment_gateways.back')),
         ];
@@ -66,7 +58,7 @@ class PaymentGateway extends Page implements Tables\Contracts\HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(PaymentGatewayModel::query())
+            ->query(FilamentPayments::loadPaymentGatewayModelClass()::query())
             ->paginated(false)
             ->reorderable('sort_order')
             ->columns([
@@ -135,7 +127,7 @@ class PaymentGateway extends Page implements Tables\Contracts\HasTable
                             ->columns(3),
                     ])
                     ->fillForm(fn($record) => $record->toArray())
-                    ->action(function (array $data, $record){
+                    ->action(function (array $data, $record) {
                         $record->update($data);
                         Notification::make()
                             ->title('Gateway Updated')

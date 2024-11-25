@@ -2,23 +2,22 @@
 
 namespace TomatoPHP\FilamentPayments\Services\Drivers;
 
-use App\Models\Account;
-use App\Models\Team;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
-use TomatoPHP\FilamentPayments\Models\Payment;
+use TomatoPHP\FilamentPayments\Facades\FilamentPayments;
 
 abstract class Driver
 {
-    public static abstract function process(Payment $payment): false|string;
+    public static abstract function process(Model $payment): false|string;
     public static abstract function verify(Request $request): \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector;
     public abstract function integration(): array;
 
     public static function cancel($trx)
     {
-        $payment = Payment::where('trx', $trx)->where('status', 0)->firstOrFail();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('trx', $trx)->where('status', 0)->firstOrFail();
 
         // Update Status
         $payment->status = 2;
@@ -77,9 +76,9 @@ abstract class Driver
 
         $validated = $validator->validated();
 
-        $team = Team::where('public_key', $validated['public_key'])->where('status', 1)->first();
+        $team = FilamentPayments::loadTeamModelClass()::where('public_key', $validated['public_key'])->where('status', 1)->first();
 
-        $team = Team::where('public_key', $validated['public_key'])->first();
+        $team = FilamentPayments::loadTeamModelClass()::where('public_key', $validated['public_key'])->first();
 
         if (!$team) {
             return response()->json([
@@ -102,9 +101,9 @@ abstract class Driver
         }
 
         // Create the Payment
-        $payment = Payment::create([
+        $payment = FilamentPayments::loadPaymentModelClass()::create([
             'model_id' => $team->id,
-            'model_type' => Team::class,
+            'model_type' => FilamentPayments::loadTeamModelClass(),
             'method_currency' => $validated['currency'],
             'amount' => $validated['amount'],
             'detail' => $validated['details'],
@@ -142,7 +141,7 @@ abstract class Driver
 
         $validated = $validator->validated();
 
-        $team = Team::where('public_key', $validated['public_key'])->first();
+        $team = FilamentPayments::loadTeamModelClass()::where('public_key', $validated['public_key'])->first();
 
         if (!$team) {
             return response()->json([
@@ -151,7 +150,7 @@ abstract class Driver
             ], 404);
         }
 
-        $payment = Payment::where('model_id', $team->id)->where('trx', $validated['id'])->first();
+        $payment = FilamentPayments::loadPaymentModelClass()::where('model_id', $team->id)->where('trx', $validated['id'])->first();
 
         if (!$payment) {
             return response()->json([
@@ -199,8 +198,8 @@ abstract class Driver
                 $modelClass = $payment->model_type;
                 $model = $modelClass::find($payment->model_id);
 
-                if ($model instanceof Team) {
-                    $user = Account::where('id', $payment->team->owner->id)->first();
+                if ($model instanceof Model) {
+                    $user = FilamentPayments::loadAccountModelClass()::where('id', $payment->team->owner->id)->first();
 
                     if (method_exists($user, 'depositFloat')) {
                         $user->depositFloat($payment->final_amount);
