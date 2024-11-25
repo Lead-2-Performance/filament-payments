@@ -25,14 +25,22 @@ class FilamentPaymentsPlugin implements Plugin
             $this->isActive = true;
         }
 
+        $payment_resource = config('filament-payments.payment_resource');
+        $payment_gateway_page = config('filament-payments.payment_gateway_page');
+
+        $resources = [];
+        if (config('filament-payments.enable_resources')) {
+            $resources[] = $payment_resource;
+        }
+        $pages = [];
+        if (config('filament-payments.enable_resources')) {
+            $pages[] = $payment_gateway_page;
+        }
+
         if ($this->isActive) {
             $panel
-                ->pages([
-                    PaymentGateway::class
-                ])
-                ->resources([
-                    PaymentResource::class
-                ]);
+                ->pages($pages)
+                ->resources($resources);
         }
     }
 

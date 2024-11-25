@@ -20,4 +20,8 @@ return [
     "logs_model" => \TomatoPHP\FilamentPayments\Models\PaymentLog::class,
     "team_model" => \App\Models\Team::class,
     "account_model" => \App\Models\Account::class,
+
+    "enable_resources" => true,
+    "payment_resource" => \TomatoPHP\FilamentPayments\Filament\Resources\PaymentResource::class,
+    "payment_gateway_page" => \TomatoPHP\FilamentPayments\Filament\Pages\PaymentGateway::class,
 ];
