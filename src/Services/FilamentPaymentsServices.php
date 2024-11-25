@@ -119,45 +119,30 @@ class FilamentPaymentsServices
     public function loadPaymentModelClass()
     {
         $model = config('filament-payments.payment_model') ?? \TomatoPHP\FilamentPayments\Models\Payment::class;
-        if (!class_exists($model)) {
-            throw new \Exception('Payment model class not found');
-        }
         return  $model;
     }
 
     public function loadPaymentGatewayModelClass()
     {
         $model = config('filament-payments.gateway_model') ?? \TomatoPHP\FilamentPayments\Models\PaymentGateway::class;
-        if (!class_exists($model)) {
-            throw new \Exception('Gateway model class not found');
-        }
         return  $model;
     }
 
     public function loadPaymentLogModelClass()
     {
         $model = config('filament-payments.logs_model') ?? \TomatoPHP\FilamentPayments\Models\PaymentLog::class;
-        if (!class_exists($model)) {
-            throw new \Exception('Payment log model class not found');
-        }
         return  $model;
     }
 
     public function loadTeamModelClass()
     {
         $model = config('filament-payments.team_model') ?? \App\Models\Team::class;
-        if (!class_exists($model)) {
-            throw new \Exception('Team model class not found');
-        }
         return  $model;
     }
 
     public function loadAccountModelClass()
     {
         $model = config('filament-payments.account_model') ?? \App\Models\Account::class;
-        if (!class_exists($model)) {
-            throw new \Exception('Account model class not found');
-        }
         return  $model;
     }
 }
